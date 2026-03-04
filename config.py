@@ -40,3 +40,28 @@ THRESHOLDS = {
     "power": {"min": 20,"max": 35},                         # MW
     "vibration":{"min": 3,"max": 8}                        #mm/s
 }
+
+
+# ---------------------------------------------
+# TIPOS DE FALLO
+# ---------------------------------------------
+FAULT_TYPES = {
+    "power_spike": {
+        "persistent": False,
+        "max_duration": 5,        # ciclos
+        "recovery_prob": 1.0      # se cura solo siempre
+    },
+    "overheating": {
+        "persistent": True,
+        "max_duration": None,
+        "recovery_prob": 0.02     # 2% de probabilidad por ciclo
+    },
+    "vibration_fault": {
+        "persistent": True,
+        "max_duration": None,
+        "recovery_prob": 0.03     # 3% de probabilidad por ciclo
+    },
+}
+
+# Probabilidad de que ocurra un fallo en cada ciclo normal
+FAULT_PROBABILITY = 0.01   # 1% por ciclo

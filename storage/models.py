@@ -7,7 +7,7 @@ Cada clase corresponde a una tabla y sus atributos a las columnas
 SQLAlchemy se encarga de traducir automáticamente estas clases a sentencias SQL.
 """
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime, Float  
+from sqlalchemy import  Column, ForeignKey, Integer, String, DateTime, Float  
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func         # PERMITE USAR FUNCIONES DE SQL típicas 
 from database import Base
@@ -20,19 +20,19 @@ class Reading(Base):
     sensor_type = Column(String(50),index= True)
     value = Column(Float,index= True )
     unit = Column(String(20), index= True)
+    notes = Column(String(100), nullable=True)      # Nos permitirá guardar la notificación de fallo resuelto
     timestamp = Column(DateTime(timezone=True), server_default=func.now())     
 
     # Relación con la Tabla de Anomalias
-    anomalia = relationship("Anomaly", back_populates="reading") # Relación bidireccional entre tablas (n:n)
+    anomaly = relationship("Anomaly", back_populates="owner") # Relación bidireccional entre tablas (1:n)
 
 
 
 class Anomaly(Base):
     __tablename__ = "anomaly"
     id = Column(Integer, primary_key= True, index= True)
-    anomaly = Column(Boolean)
     anom_type = Column(String(50),index= True)
-    owner_id = Column(Integer, ForeignKey("turbina.id"))
+    owner_id = Column(Integer, ForeignKey("reading.id"))
 
     # Relación con la tabla Turbina
     owner = relationship("Reading", back_populates="anomaly") # Bidireccional con relación (1:1)
