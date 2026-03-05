@@ -76,3 +76,31 @@ class TurbineSimulator:
             temperature = random.gauss(mu + self.time_in_state*5, sigma)
         
         return self.add_sensor_noise(temperature, 10)   # Agregamos ruido
+
+    def simulate_power(self):
+        """
+        Devuelve un valor de potencia realista
+        según el estado actual de la turbina.
+        -----------------------------------
+        Ref:https://en.wikipedia.org/wiki/Combined-cycle_power_plant
+        """
+
+        min_pw = THRESHOLDS["power"]["min"]
+        max_pw = THRESHOLDS["power"]["max"]
+
+        mu = (min_pw + max_pw) / 2
+        sigma = (max_pw-min_pw) / 6     
+
+        
+        if self.state in ["normal", "vibration_fault"]:
+            # Valor razonable de funcionamiento
+            pw = random.gauss(mu, sigma)
+        elif self.state == "overheating":
+            # Turbina reduce potencia para intentar enfriarse: Correlación inversa
+            pw = random.gauss (mu - 20 , sigma)
+        else:
+            # Caso power_spike: Sube rápido y de forma crítica
+            pw = random.gauss(mu + self.time_in_state*5, sigma)
+        
+        return self.add_sensor_noise(pw, 3)   # Agregamos ruido
+    

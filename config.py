@@ -37,7 +37,7 @@ INTERVALS ={
 
 THRESHOLDS = {
     "temperature": {"min":900, "max":1400},     # ºC
-    "power": {"min": 20,"max": 35},                         # MW
+    "power": {"min": 100,"max": 300},                         # MW
     "vibration":{"min": 3,"max": 8}                        #mm/s
 }
 
