@@ -9,7 +9,7 @@ class TurbineSimulator:
         self.state = "normal"   
         self.time_in_state = 0 
         self.fault_resolved = False         # Flag para notificar cuando se resuelve
-    
+        self.history = {}                   # {"tempt_turbine_01" : [1200. 1290, 1300,....]}
     def get_state(self):
         """
         Actualiza el estado de la turbina.
@@ -141,7 +141,7 @@ class TurbineSimulator:
         # Según el tipo de sensor llamamos a la función correcta
         if sensor ["type"] == "temperature":
             value = self.simulate_temperature()
-            unit = "ºC"        
+            unit = "°C"        
         elif sensor ["type"] == "power":
             value = self.simulate_power()
             unit = "MW"
@@ -151,6 +151,18 @@ class TurbineSimulator:
 
         # Nota si se ha resuelto el fallo
         notes = f"Fallo resuelto: {sensor['type']}" if self.fault_resolved else None
+
+
+        # AGREGO CAMBIOS PARA ANALIZAR TIPOS DE ANOMALÍA DESPUES (Spike o Drift)
+        sensor_id = sensor["id"]
+        if sensor_id not in self.history:
+            self.history[sensor_id] = []
+        
+        self.history[sensor_id].append(value)
+
+        # Guardamos las últimas 10 lecturas (para comparar Spike y Drift)
+        if len(self.history[sensor_id])>10:
+            self.history[sensor_id].pop(0)
 
         return {
             "sensor_id":   sensor["id"],
