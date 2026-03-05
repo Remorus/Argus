@@ -104,3 +104,30 @@ class TurbineSimulator:
         
         return self.add_sensor_noise(pw, 3)   # Agregamos ruido
     
+    def simulate_vibration(self):
+        """
+        Devuelve un valor de vibración realista
+        según el estado actual de la turbina.
+        -----------------------------------
+        Ref:ISO 10816-1:1995 – Standard for assessing vibration of rotating machines
+        """
+
+        min_vib = THRESHOLDS["vibration"]["min"]
+        max_vib = THRESHOLDS["vibration"]["max"]
+
+        mu = (min_vib + max_vib) / 2
+        sigma = (max_vib-min_vib) / 6     
+
+        
+        if self.state in ["normal", "power_spike"]:
+            # Valor razonable de funcionamiento
+            vib = random.gauss(mu, sigma)
+        elif self.state == "overheating":
+            # Calor dilata componentes: Aumanta la vibración
+            vib = random.gauss (mu + 0.5 , sigma)
+        else:
+            # Caso vibration_fault: Sube rápido y de forma crítica
+            vib = random.gauss(mu + self.time_in_state*0.5, sigma)
+        
+        return self.add_sensor_noise(vib, 0.2)   # Agregamos ruido
+    
