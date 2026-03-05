@@ -4,7 +4,10 @@ from config import SENSORS, INTERVALS
 from sensors.simulator import TurbineSimulator
 from script.init_db import init_db
 from storage.database import get_db
-from storage.models import Reading
+from storage.models import Reading, Anomaly
+from analysis.analyzer import analyze_reading
+
+
 
 # Inicialización DB: 
 init_db()
@@ -47,6 +50,21 @@ def run_sensor(sensor, simulator):
                 )
             db.add(db_reading)
             db.commit()
+
+
+            # Agregamos Análisis de Anomalías: 
+            anomaly_type = analyze_reading(reading, simulator.history)
+
+            if anomaly_type:
+                db_anomaly = Anomaly(
+                    anom_type = anomaly_type,
+                    owner_id = db_reading.id
+                )
+            
+                db.add(db_anomaly)
+                db.commit()
+                print(f" ANOMALÍA: {anomaly_type} en {reading['sensor_id']} valor={reading['value']}")
+
         except Exception as e: 
             db.rollback()   # Revertimos cambios
             print (f"Error en Guardado: {e}")
