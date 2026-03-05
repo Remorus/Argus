@@ -2,7 +2,7 @@ import threading
 import time
 from config import SENSORS, INTERVALS
 from sensors.simulator import TurbineSimulator
-from Script.init_db import *
+from script.init_db import init_db
 from storage.database import get_db
 from storage.models import Reading
 
@@ -67,3 +67,10 @@ simulator = TurbineSimulator() # Una sola instancia del simulador (explicado ant
 for s in SENSORS: 
     t = threading.Thread(target=run_sensor, args=(s, simulator), daemon=True)  
     t.start()
+
+# Vamos a mantener el programa vivo hasta CTRL + C ( para no romperlo con daemon = True )
+try: 
+    while True: 
+        time.sleep(1)
+except KeyboardInterrupt: 
+    print("Sistema detenido...")

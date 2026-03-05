@@ -10,7 +10,7 @@ SQLAlchemy se encarga de traducir automáticamente estas clases a sentencias SQL
 from sqlalchemy import  Column, ForeignKey, Integer, String, DateTime, Float  
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func         # PERMITE USAR FUNCIONES DE SQL típicas 
-from database import Base
+from storage.database import Base
 
 
 class Reading(Base):
