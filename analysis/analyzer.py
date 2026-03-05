@@ -131,3 +131,32 @@ class TurbineSimulator:
         
         return self.add_sensor_noise(vib, 0.2)   # Agregamos ruido
     
+    def generate_reading(self, sensor):
+        """
+        Devuelve un diccionario listo para guardar en MySQL
+        """
+
+        self.get_state()
+
+        # Según el tipo de sensor llamamos a la función correcta
+        if sensor ["type"] == "temperature":
+            value = self.simulate_temperature()
+            unit = "ºC"        
+        elif sensor ["type"] == "power":
+            value = self.simulate_power()
+            unit = "MW"
+        else:
+            value = self.simulate_vibration()
+            unit = "mm/s"
+
+        # Nota si se ha resuelto el fallo
+        notes = f"Fallo resuelto: {sensor['type']}" if self.fault_resolved else None
+
+        return {
+            "sensor_id":   sensor["id"],
+            "sensor_type": sensor["type"],
+            "value":       value,
+            "unit":        unit,
+            "notes":       notes,
+            "timestamp":   datetime.now(timezone.utc)
+        }
