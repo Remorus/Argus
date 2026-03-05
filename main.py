@@ -57,3 +57,13 @@ def run_sensor(sensor, simulator):
         print(f"[{reading['timestamp']}] - {reading['sensor_id']}: {reading['value']} {reading['unit']} | Estado: {simulator.state}")
 
         time.sleep(INTERVALS[sensor["type"]])
+
+
+
+
+# Lanzamos los hilos
+simulator = TurbineSimulator() # Una sola instancia del simulador (explicado antes)
+
+for s in SENSORS: 
+    t = threading.Thread(target=run_sensor, args=(s, simulator), daemon=True)  
+    t.start()
