@@ -46,3 +46,33 @@ class TurbineSimulator:
         """
         noise_value = value + np.random.normal(0, noise_level)
         return noise_value
+
+    def simulate_temperature(self):
+        """
+        Devuelve un valor de temperatura realista
+        según el estado actual de la turbina.
+        -----------------------------------
+        Ref:https://en.wikipedia.org/wiki/Combined-cycle_power_plant
+        """
+
+        min_temp = THRESHOLDS["temperature"]["min"]
+        max_temp = THRESHOLDS["temperature"]["max"]
+
+        mu = (min_temp + max_temp) / 2
+        sigma = (max_temp-min_temp) / 6     # El 99 % caerá dentro del rango 
+
+        
+        if self.state == "normal":
+            # Valor razonable de funcionamiento
+            temperature = random.gauss(mu, sigma)
+        elif self.state == "power_spike":
+            # Suponemos correlación entre Power_Spike y Tª proporcional
+            temperature = random.gauss (mu +20 , sigma)
+        elif self.state == "vibration_fault":
+            # Correlación: Sube moderadamente con el tiempo por fricción
+            temperature = random.gauss(mu+ self.time_in_state*2,sigma)
+        else:
+            # Caso Overheating: Sube rápido y de forma crítica
+            temperature = random.gauss(mu + self.time_in_state*5, sigma)
+        
+        return self.add_sensor_noise(temperature, 10)   # Agregamos ruido
