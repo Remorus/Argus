@@ -37,4 +37,12 @@ class TurbineSimulator:
                     self.state = "normal"
                     self.time_in_state = 0 
                     self.fault_resolved = True
-                    
+
+    
+    def add_sensor_noise(self,value, noise_level):
+        """
+        Recibe valor base  y un nivel de ruido.
+        Devuelve un valor con ruido gaussiano añadido
+        """
+        noise_value = value + np.random.normal(0, noise_level)
+        return noise_value
