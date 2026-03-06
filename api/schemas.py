@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 
 
@@ -20,4 +20,4 @@ class AnomalySchema (BaseModel):
     anom_type: str = Field(..., description="Tipo de Anomalía")
     owner_id: int = Field(..., description="ForeignKey")
     class Config:
-        from_attributes = True         # Esto permite convertir el objeto SQLALchemy a Pydantic
+        from_attributes = True         
