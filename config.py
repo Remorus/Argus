@@ -19,6 +19,11 @@ DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB
 
 
 # ---------------------------------------------
+# Credenciales para API
+# ---------------------------------------------
+API_HOST = os.getenv("API_HOST")
+API_PORT = int(os.getenv("API_PORT"))
+# ---------------------------------------------
 # SENSORES del SISTEMA
 # Analizaremos las palas de turbina de gas 
 # ---------------------------------------------
