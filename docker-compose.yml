@@ -13,5 +13,17 @@ services:
     volumes: 
     - mysql_data:/var/lib/mysql
 
+  grafana: 
+    image: grafana/grafana:latest
+    container_name: argus_grafana
+    ports:
+      - "3000:3000"
+    environment: 
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes: 
+      - grafana_data:/var/lib/grafana
+    depends_on: 
+      - mysql
 volumes:
   mysql_data:
+  grafana_data:
