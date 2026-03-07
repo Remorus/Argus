@@ -11,7 +11,7 @@ Desarrollado como proyecto personal para explorar arquitecturas IoT aplicadas a 
 | Parámetro                                    | Rango típico                          | Límite crítico         | Observaciones                                                                                                                   |
 | -------------------------------------------- | ------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **Temperatura (gases que impactan palas)**   | 1200–1400 °C                          | >1400 °C               | Indica el estrés térmico sobre las palas; valores mayores requieren revisión y control de enfriamiento.                         |
-| **Potencia (Power / Output)**                | 24–35 MW (turbina industrial mediana) | Caídas súbitas >10–15% | Analiza eficiencia y posibles pérdidas por daño en palas o problemas de combustión.                                             |
+| **Potencia (Power / Output)**                | 100–300 MW (turbina industrial mediana) | Caídas súbitas >10–15% | Analiza eficiencia y posibles pérdidas por daño en palas o problemas de combustión.                                             |
 | **Vibración (Vibration / Cojinetes y ejes)** | 3–8 mm/s r.m.s.                       | >8 mm/s                | Valores altos pueden indicar desbalance, desgaste de cojinetes o daño en palas; correlacionar con temperatura para diagnóstico. |
 
 **Nota:** Los valores son representativos de turbinas de gas industriales típicas.
