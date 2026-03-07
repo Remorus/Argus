@@ -2,7 +2,7 @@
 
 **Argus** es un sistema de monitoreo en tiempo real de sensores IoT con detección de anomalías, construido con **Python, FastAPI, MySQL y Docker**. Permite simular datos de sensores, almacenar lecturas en una base de datos, detectar anomalías (picos, deriva o valores fuera de rango) y generar alertas inmediatas, con visualización gráfica de los resultados.
 
-En concreto, analizaremos **palas de una turbina de gas**, las cuales soportan los mayores esfuerzos térmicos. Su monitoreo garantiza eficiencia, seguridad y vida útil de la turbina.
+Desarrollado como proyecto personal para explorar arquitecturas IoT aplicadas a entornos industriales.
 
 ---
 
@@ -31,26 +31,152 @@ El análisis se centrará en la **correlación entre temperatura, potencia y vib
 
 ---
 
+## Stack
+
+| Capa | Tecnología |
+|---|---|
+| Lenguaje | Python 3.11 |
+| API | FastAPI + Uvicorn |
+| Base de datos | MySQL 8.0 |
+| ORM | SQLAlchemy |
+| Validación | Pydantic v2 |
+| Visualización | Matplotlib, Grafana |
+| Infraestructura | Docker, Docker Compose |
+
+---
+
 ## Estructura del Proyecto
 
 ```
 argus/
-├── sensors/                        # Simulador de sensores
-│    └── simulator.py               # Genera datos falsos con ruido y anomalías
-├── storage/                        # Modelos y conexión a la base de datos
-│    ├── models.py                  # Definición de tablas MySQL con SQLAlchemy
-│    └── database.py                # Conexión a MySQL y operaciones CRUD
-├── analysis/                       # Detección de anomalías
-│    ├── analyzer.py                # Detecta picos, deriva y valores fuera de rango
-│    └── alerts.py                  # Genera alertas en consola
-├── api/                            # Servidor REST
-│    ├── main.py                    # Arranca el servidor FastAPI
-│    └── routes.py                  # Endpoints: /sensors, /readings, /anomalies
-├── dashboard/                      # Visualización de datos
-│    └── plot.py                    # Gráficas con anomalías marcadas
-├── tests/                          # Test unitarios
-│    ├── test_simulator.py          # Test del simulador de sensores
-│    └── test_analyzer.py           # Test de detección de anomalías
-└── docs/                            # Documentación
-     └── architecture.md            # Explic
+├── sensors/
+│   └── simulator.py       # Genera datos de turbina con ruido gaussiano y estados de fallo
+├── storage/
+│   ├── database.py        # Conexión a MySQL y gestión de sesiones SQLAlchemy
+│   └── models.py          # Modelos ORM: Reading, Anomaly
+├── analysis/
+│   └── analyzer.py        # Detección de anomalías: spike, out_of_range, drift
+├── api/
+│   ├── main.py            # Instancia y arranque de FastAPI
+│   ├── routes.py          # Endpoints: /readings, /readings/{sensor_id}, /anomalies
+│   └── schemas.py         # Schemas Pydantic para serialización
+├── dashboard/
+│   └── plot.py            # Gráficas por sensor con anomalías marcadas
+├── scripts/
+│   └── init_db.py         # Inicialización de tablas en MySQL
+├── docs/
+│   └── architecture.md    # Decisiones de diseño y flujo de datos
+├── main.py                # Punto de entrada con threading por sensor
+├── config.py              # Configuración centralizada
+├── docker-compose.yml
+└── requirements.txt         
 ```
+
+El simulador genera lecturas concurrentes para tres sensores usando threads independientes. Cada lectura se almacena en MySQL y se analiza en tiempo real. Si se detecta una anomalía, se registra en la tabla `anomaly` con referencia a la lectura original.
+
+---
+
+## Sensores y umbrales
+
+| Sensor | Tipo | Rango normal | Unidad | Intervalo |
+|---|---|---|---|---|
+| temp\_turbine\_01 | Temperatura | 900 – 1400 | °C | 5 s |
+| pow\_turbine\_01 | Potencia | 100 – 300 | MW | 10 s |
+| vib\_turbine\_01 | Vibración | 3 – 8 | mm/s | 2 s |
+
+---
+
+## Tipos de anomalías
+
+| Tipo | Descripción |
+|---|---|
+| spike | Un único valor fuera de rango aislado |
+| out\_of\_range | Varios valores consecutivos fuera de rango |
+| drift | Todos los valores del historial reciente fuera de rango — degradación progresiva |
+
+---
+
+## API REST
+
+Con el servidor corriendo, la documentación interactiva está disponible en `http://localhost:8000/docs`.
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/readings` | Últimas 100 lecturas de todos los sensores |
+| GET | `/readings/{sensor_id}` | Últimas 100 lecturas de un sensor específico |
+| GET | `/anomalies` | Todas las anomalías registradas |
+
+---
+
+## Visualización
+
+### Matplotlib
+
+Genera una gráfica por sensor con anomalías marcadas en rojo y umbrales operacionales visibles.
+
+```bash
+python3 -c "from dashboard.plot import plot_sensor; plot_sensor('vib_turbine_01')"
+```
+
+![Vibración](dashboard/vib_turbine_01.png)
+![Temperatura](dashboard/temp_turbine_01.png)
+![Potencia](dashboard/pow_turbine_01.png)
+
+### Grafana
+
+Dashboard en tiempo real accesible en `http://localhost:3000`.
+
+Incluye paneles de series temporales por sensor, historial de anomalías, contador de incidentes de la última hora y distribución de anomalías por tipo.
+
+![Grafana](dashboard/grafana_dashboard.png)
+
+---
+
+## Instalación y uso
+
+### Requisitos
+
+- Python 3.11+
+- Docker y Docker Compose
+
+### Pasos
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/Remorus/argus.git
+cd argus
+
+# Crear entorno virtual e instalar dependencias
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Copiar el archivo de entorno
+cp .env.example .env
+
+# Levantar MySQL y Grafana
+docker-compose up -d
+
+# Inicializar la base de datos y arrancar el simulador
+python3 main.py
+```
+
+La API arranca en un proceso separado:
+
+```bash
+python3 -m uvicorn api.main:app --reload
+```
+
+---
+
+## Roadmap
+
+- [ ] Despliegue en Raspberry Pi para monitorización con hardware real
+- [ ] Conexión con sensores BLE reales
+- [ ] Autenticación en la API
+- [ ] Modelos de detección de anomalías basados en ML (isolation forest, LSTM)
+---
+
+## Autor
+
+Pablo Romero Blanco — [GitHub](https://github.com/Remorus)
