@@ -69,4 +69,4 @@ FAULT_TYPES = {
 }
 
 # Probabilidad de que ocurra un fallo en cada ciclo normal
-FAULT_PROBABILITY = 0.3   # 1% por ciclo
+FAULT_PROBABILITY = 0.1   # 10% por ciclo
