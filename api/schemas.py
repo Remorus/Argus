@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime
 
 
@@ -21,3 +21,12 @@ class AnomalySchema (BaseModel):
     owner_id: int = Field(..., description="ForeignKey")
     class Config:
         from_attributes = True         
+
+class AnomalyStatsSchema(BaseModel):
+    anom_type: str = Field(..., description="Tipo de anomalía")
+    total: int = Field(..., description="Total de anomalías de este tipo")
+ 
+ 
+class TurbineStatusSchema(BaseModel):
+    last_readings: dict[str, Any] = Field(..., description="Última lectura por sensor")
+    incidents_last_hour: int = Field(..., description="Anomalías detectadas en la última hora")

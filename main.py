@@ -1,6 +1,7 @@
 import threading 
 import time
-from config import SENSORS, INTERVALS
+import uvicorn
+from config import SENSORS, INTERVALS, API_HOST, API_PORT
 from sensors.simulator import TurbineSimulator
 from script.init_db import init_db
 from storage.database import get_db
@@ -76,19 +77,37 @@ def run_sensor(sensor, simulator):
 
         time.sleep(INTERVALS[sensor["type"]])
 
-
-
-
-# Lanzamos los hilos
-simulator = TurbineSimulator() # Una sola instancia del simulador (explicado antes)
-
-for s in SENSORS: 
-    t = threading.Thread(target=run_sensor, args=(s, simulator), daemon=True)  
-    t.start()
-
-# Vamos a mantener el programa vivo hasta CTRL + C ( para no romperlo con daemon = True )
-try: 
-    while True: 
-        time.sleep(1)
-except KeyboardInterrupt: 
-    print("Sistema detenido...")
+def run_simulator() -> None:
+    """Lanza un hilo por sensor y mantiene el proceso vivo"""
+    simulator = TurbineSimulator()
+ 
+    for s in SENSORS:
+        t = threading.Thread(target=run_sensor, args=(s, simulator), daemon=True)
+        t.start()
+ 
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n[INFO] Simulador detenido.")
+ 
+ 
+if __name__ == "__main__":
+    
+    init_db()
+ 
+    # Arrancamos simulador en hilo separado
+    sim_thread = threading.Thread(target=run_simulator, daemon=True)
+    sim_thread.start()
+ 
+    print(f"[INFO] Simulador arrancado.")
+    print(f"[INFO] API disponible en http://{API_HOST}:{API_PORT}/docs")
+ 
+    # Arrancar API (bloqueante — mantiene el proceso vivo)
+    uvicorn.run(
+        "api.main:app",
+        host=API_HOST,
+        port=API_PORT,
+        reload=False,
+        log_level="warning",
+    )
