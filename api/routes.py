@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-from storage.database import get_db
+from storage.database import get_db, engine
+import pandas as pd
 from storage.models import Reading, Anomaly
 from api.schemas import ReadingSchema, AnomalySchema, TurbineStatusSchema, AnomalyStatsSchema
 
@@ -77,6 +78,47 @@ async def get_turbine_status(db: Session = Depends(get_db)):
     )
  
     return {
-        "last_readings": last_readings,
         "incidents_last_hour": incidents_last_hour,
+    }
+
+# ======================================
+# ANALÍTICA
+# ======================================
+@router.get("/analytics/summary")
+async def get_analytics_summary():
+    """
+    Extrae los últimos datos de la base de datos
+    a un dataframe de Pandas para posterior análisis de correlación
+    
+    Valores entre: 
+    1: Suben juntos
+    0: No relación
+    -1: Uno sube otro baja
+    """
+    # Extraemos los datos usando Pandas SQL directamente
+    query = "SELECT * FROM reading ORDER BY timestamp DESC LIMIT 3000"
+    df = pd.read_sql(query, engine)
+
+    if df.empty:
+        return {"status": "error", "message": "Faltan lecturas para el análisis."}
+
+    stats = df.groupby("sensor_type")["value"].agg(["mean", "max", "min", "std"])
+    stats = stats.fillna(0).to_dict(orient="index")
+
+    # Preparación de datos para Correlación
+    # Pivotamos la tabla (las filas son timestamps, las columnas los tipos de sensor)
+    pivot_df = df.pivot_table(index='timestamp', columns='sensor_type', values='value', aggfunc='mean')
+    
+    #Rellenamos los huecos por si algún sensor se leyó unos milisegundos más tarde (ffill)
+    pivot_df = pivot_df.ffill().bfill()
+    
+    # Matriz de Correlación: ver si cuando X sube, Y sube
+    corr_matrix = pivot_df.corr().fillna(0).to_dict()
+
+    return {
+        "status": "success",
+        "data_points_analyzed": len(df),
+        "statistics_by_sensor": stats,
+        "correlation_matrix": corr_matrix,
+        "business_value": "Visualización matricial de correlaciones y estadísticas de planta"
     }

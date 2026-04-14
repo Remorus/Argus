@@ -6,8 +6,8 @@ MIN_HISTORY = 5
 
 def analyze_reading(reading: dict, history: dict) -> str | None:
     """
-    Analiza una lectura y devuelve el tipo de anomalía o None.
-    Implementa Mantenimiento Predictivo usando regresión lineal (NumPy).
+    Analiza una lectura y devuelve el tipo de anomalía o None
+    Implementa Mantenimiento Predictivo usando regresión lineal 
     """
     sensor_type = reading["sensor_type"]
     value = reading["value"]
@@ -45,7 +45,7 @@ def analyze_reading(reading: dict, history: dict) -> str | None:
         return "out_of_range"
 
     # 3. MANTENIMIENTO PREDICTIVO (Time-to-Threshold Warning)
-    #Aún estamos dentro de los márgenes seguros, pero la tendencia puede ser crítica.
+    #Aún estamos dentro de los márgenes seguros, pero la tendencia puede ser crítica
     x = np.arange(len(values_array))
     slope, intercept = np.polyfit(x, values_array, 1)
 
@@ -64,7 +64,7 @@ def analyze_reading(reading: dict, history: dict) -> str | None:
         salvando costes
         """
         if 0 < future_steps <= 15 and value >= (max_val * 0.9):
-            reading["notes"] = f"CRÍTICO: Límite superior en {int(future_steps)} iteraciones."
+            reading["notes"] = f"CRÍTICO: Límite superior en {int(future_steps)} iteraciones"
             return "predictive_warning"
 
     #Análisis de tendencia negativa (acercándose al límite mínimo)
@@ -72,9 +72,9 @@ def analyze_reading(reading: dict, history: dict) -> str | None:
         steps_to_cross = (min_val - intercept) / slope
         future_steps = steps_to_cross - len(values_array)
         
-        # Si fallará en los próximos 15 ciclos y ya está cerca del mínimo
+        # Fallará en los próximos 15 ciclos y ya está cerca del mínimo
         if 0 < future_steps <= 15 and value <= (min_val * 1.1):
-            reading["notes"] = f"CRÍTICO: Caída bajo el límite en {int(future_steps)} iteraciones."
+            reading["notes"] = f"CRÍTICO: Caída bajo el límite en {int(future_steps)} iteraciones"
             return "predictive_warning"
 
     return None
