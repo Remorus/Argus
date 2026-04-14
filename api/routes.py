@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timezone, timedelta
@@ -122,3 +122,30 @@ async def get_analytics_summary():
         "correlation_matrix": corr_matrix,
         "business_value": "Visualización matricial de correlaciones y estadísticas de planta"
     }
+
+@router.get("/analytics/export")
+async def export_analytics(window: int = Query(5, description="Ventana para Media Móvil")):
+    """
+    Exporta datos en formato CSV aplicando una media móvil
+    para suavizar el ruido temporal
+    """
+    query = "SELECT * FROM reading ORDER BY timestamp DESC LIMIT 5000"
+    df = pd.read_sql(query, engine)
+
+    if df.empty:
+        return {"status": "error", "message": "Faltan lecturas para exportar."}
+
+    # Ordenamos por tiempo
+    df = df.sort_values(by="timestamp")
+
+    # Usamos GroupBy para no mezclar medias de temperatura con vibración
+    df['value_smoothed'] = df.groupby('sensor_id')['value'].transform(lambda x: x.rolling(window=window, min_periods=1).mean())
+
+    # Formateamos CSV
+    csv_data = df.to_csv(index=False)
+    
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=argus_data.csv"}
+    )

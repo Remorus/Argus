@@ -105,6 +105,8 @@ Con el servidor corriendo, la documentación interactiva está disponible en `ht
 | GET | `/readings` | Últimas 100 lecturas de todos los sensores |
 | GET | `/readings/{sensor_id}` | Últimas 100 lecturas de un sensor específico |
 | GET | `/anomalies` | Todas las anomalías registradas |
+| GET | `/analytics/summary` | **(NUEVO)** KPIs por sensor y Matriz de Correlación calculada en Memoria (Pandas) |
+| GET | `/analytics/export` | **(NUEVO)** Descarga en CSV con ruido suavizado por Media Móvil (Pandas) |
 
 ---
 
@@ -169,12 +171,22 @@ python3 -m uvicorn api.main:app --reload
 
 ---
 
+## Módulo de Analítica y Mantenimiento Predictivo (Novedad)
+
+Recientemente Argus fue actualizado para ir más allá de la monitorización reactiva, incorporando operaciones vectorizadas y analítica en tiempo real:
+
+1. **Mantenimiento Predictivo (Time-to-Threshold):** Utilizando `np.polyfit` (NumPy), el motor evalúa matemáticamente la pendiente de los valores. Argus no solo alerta cuando un sensor falla, sino que **predice cuántos ciclos faltan antes de un fallo inminente**, dando una ventana crítica a los operadores para refrigerar la máquina.
+2. **Correlación de Sensores (Pandas):** El endpoint `/analytics/summary` construye en memoria un Dataframe para calcular la correlación de Pearson entre sensores (ej: observar cómo influye la subida de temperatura en la caída de potencia) sin sobrecargar el motor SQL.
+3. **ETL y Exportación Limpia (Rolling Averages):** El sistema permite obtener un informe listo para gerencia mediante `/analytics/export`, donde Pandas limpia automáticamente los "falsos picos" ambientales con medias móviles.
+
+---
+
 ## Roadmap
 
 - [ ] Despliegue en Raspberry Pi para monitorización con hardware real
 - [ ] Conexión con sensores BLE reales
 - [ ] Autenticación en la API
-- [ ] Modelos de detección de anomalías basados en ML (isolation forest, LSTM)
+- [ ] Modelos de Machine Learning avanzados (Isolation Forest, LSTM)
 ---
 
 ## Autor
